@@ -1,12 +1,17 @@
-# 1. Schritt: Bauen mit Maven und Java 17
+# 1. Schritt: Bauen
 FROM maven:3.8.4-openjdk-17 AS build
+WORKDIR /app
 COPY . .
-RUN mvn clean package -DskipTests
 
-# 2. Schritt: Ausführen mit einem stabilen Java 17 Image
+# Dieser Befehl sucht die pom.xml und wechselt in das richtige Verzeichnis, falls nötig
+RUN find . -name "pom.xml" -exec dirname {} \; > folder.txt && \
+    cd $(cat folder.txt) && \
+    mvn clean package -DskipTests
+
+# 2. Schritt: Ausführen
 FROM eclipse-temurin:17-jre-jammy
-# Wir holen die Datei aus dem Build-Ordner
-COPY --from=build /target/*.jar app.jar
+WORKDIR /app
+# Wir suchen die gebaute .jar Datei, egal in welchem Unterordner sie gelandet ist
+COPY --from=build /app/**/target/*.jar app.jar
 EXPOSE 8080
-# Startbefehl
 ENTRYPOINT ["java", "-jar", "app.jar"]
