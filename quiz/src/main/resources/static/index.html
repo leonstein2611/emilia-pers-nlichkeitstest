@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dein Persönlichkeits-Quiz</title>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --bg: #dfe6e9;
+            --text: #2d3436;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: var(--text);
+        }
+
+        #quiz-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: #eee;
+            border-radius: 10px;
+            height: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        #progress-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid var(--secondary);
+            padding: 15px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .option-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3);
+        }
+
+        #result {
+            display: none;
+            animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .type-badge {
+            background: var(--secondary);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hidden { display: none !important; }
+
+        #rating-section {
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="quiz-card">
+    <div id="quiz-content">
+        <div class="progress-container">
+            <div id="progress-fill"></div>
+        </div>
+        <h2 id="question-text">Lade Fragen...</h2>
+        <div id="options" class="options-grid"></div>
+    </div>
+
+    <div id="result">
+        <div class="type-badge">Ergebnis</div>
+        <h1 id="type-name" style="color: var(--primary); margin: 10px 0;"></h1>
+        <p id="type-desc" style="line-height: 1.6; color: #636e72;"></p>
+        
+        <div id="rating-section">
+            <h3>Wie fanden Sie den Test?</h3>
+            <div id="rating-buttons" class="options-grid">
+                <button onclick="submitRating(1)" class="option-btn">1 - Schlecht</button>
+                <button onclick="submitRating(2)" class="option-btn">2</button>
+                <button onclick="submitRating(3)" class="option-btn">3</button>
+                <button onclick="submitRating(4)" class="option-btn">4</button>
+                <button onclick="submitRating(5)" class="option-btn">5 - Super!</button>
+            </div>
+            <p id="thanks-msg" class="hidden" style="color: green; font-weight: bold; margin-top: 15px;">Vielen Dank für Ihr Feedback!</p>
+        </div>
+
+        <button onclick="location.reload()" class="option-btn" style="margin-top: 30px; width: auto;">Test neu starten</button>
+    </div>
+</div>
+
+<script>
+    let questions = [];
+    let currentIdx = 0;
+    let scores = {};
+    let currentWinner = ""; // Merken für die Statistik
+
+    async function fetchQuestions() {
+        try {
+            const response = await fetch('http://localhost:8080/api/questions');
+            questions = await response.json();
+            showQuestion();
+        } catch (error) {
+            document.getElementById('question-text').innerText = "Verbindung zum Server fehlt!";
+        }
+    }
+
+    function showQuestion() {
+        const q = questions[currentIdx];
+        document.getElementById('question-text').innerText = q.text;
+        
+        const progress = (currentIdx / questions.length) * 100;
+        document.getElementById('progress-fill').style.width = progress + "%";
+
+        const optionsDiv = document.getElementById('options');
+        optionsDiv.innerHTML = '';
+
+        q.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.answerText;
+            btn.onclick = () => handleAnswer(opt.pointsPerType);
+            optionsDiv.appendChild(btn);
+        });
+    }
+
+    function handleAnswer(points) {
+        for (let type in points) {
+            scores[type] = (scores[type] || 0) + points[type];
+        }
+
+        currentIdx++;
+        if (currentIdx < questions.length) {
+            showQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    async function showResult() {
+        const winner = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+        currentWinner = winner; 
+        
+        try {
+            const response = await fetch(`http://localhost:8080/api/types/${winner}`);
+            const details = await response.json();
+
+            document.getElementById('quiz-content').classList.add('hidden');
+            document.getElementById('result').style.display = 'block';
+            
+            document.getElementById('type-name').innerText = details.name;
+            document.getElementById('type-desc').innerText = details.description;
+            
+        } catch (error) {
+            console.error("Fehler", error);
+            document.getElementById('type-name').innerText = "Typ: " + winner;
+        }
+    }
+
+    // Feedback an den Server senden
+    async function submitRating(stars) {
+        const data = {
+            type: currentWinner,
+            rating: stars
+        };
+
+        try {
+            await fetch('/api/submit-result', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            // UI Feedback
+            document.getElementById('rating-buttons').classList.add('hidden');
+            document.getElementById('thanks-msg').classList.remove('hidden');
+            console.log("Ergebnis erfolgreich gespeichert!");
+        } catch (error) {
+            console.error("Fehler beim Speichern:", error);
+            alert("Fehler beim Speichern der Bewertung.");
+        }
+    }
+
+    fetchQuestions();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz Statistiken</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 50px; margin: 0; }
+        .stats-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
+        h1 { color: #6c5ce7; text-align: center; margin-bottom: 30px; }
+        
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .summary-box { background: #f8f9fa; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #eee; }
+        .summary-box span { display: block; font-size: 0.9rem; color: #636e72; }
+        .summary-box strong { font-size: 1.5rem; color: #6c5ce7; }
+
+        .stat-item { display: flex; justify-content: space-between; padding: 10px 0; font-weight: 600; }
+        .bar-container { background: #eee; height: 12px; border-radius: 6px; margin-bottom: 20px; overflow: hidden; }
+        .bar-fill { background: linear-gradient(90deg, #a29bfe, #6c5ce7); height: 100%; transition: width 1s ease-in-out; }
+        
+        .btn { background: #6c5ce7; color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; width: 100%; font-size: 1rem; margin-top: 20px; }
+        .btn:hover { background: #5a4bcf; }
+    </style>
+</head>
+<body>
+    <div class="stats-card">
+        <h1>Ergebnisse im Überblick</h1>
+        
+        <div class="summary-grid">
+            <div class="summary-box">
+                <span>Teilnehmer</span>
+                <strong id="total-count">0</strong>
+            </div>
+            <div class="summary-box">
+                <span>Ø Bewertung</span>
+                <strong id="avg-rating">0.0</strong> / 5
+            </div>
+        </div>
+
+        <div id="stats-list">Lade Daten...</div>
+
+        <button class="btn" onclick="location.href='index.html'">Zurück zum Quiz</button>
+    </div>
+
+    <script>
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                
+                // Header-Daten setzen
+                document.getElementById('total-count').innerText = data.totalParticipants;
+                document.getElementById('avg-rating').innerText = data.averageRating;
+
+                const list = document.getElementById('stats-list');
+                list.innerHTML = '';
+
+                const counts = data.counts;
+                const total = data.totalParticipants;
+
+                // Einträge sortieren (Häufigste zuerst)
+                const sortedTypes = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+
+                for (const [type, count] of sortedTypes) {
+                    const percent = ((count / total) * 100).toFixed(1);
+                    list.innerHTML += `
+                        <div>
+                            <div class="stat-item">
+                                <span>${type}</span>
+                                <span>${count} (${percent}%)</span>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar-fill" style="width: ${percent}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error("Fehler:", error);
+                document.getElementById('stats-list').innerText = "Fehler beim Laden der Statistik.";
+            }
+        }
+        loadStats();
+    </script>
+</body>
+</html>
