@@ -153,7 +153,7 @@
 
     async function fetchQuestions() {
         try {
-            const response = await fetch('http://localhost:8080/api/questions');
+            const response = await fetch('/api/questions');
             questions = await response.json();
             showQuestion();
         } catch (error) {
@@ -198,7 +198,7 @@
         currentWinner = winner; 
         
         try {
-            const response = await fetch(`http://localhost:8080/api/types/${winner}`);
+            const response = await fetch(`/api/types/${winner}`);
             const details = await response.json();
 
             document.getElementById('quiz-content').classList.add('hidden');
