@@ -18,7 +18,7 @@ public class QuizController {
 
         questions.add(new Question("Fällt es Ihnen leicht Entscheidungen zu treffen?", List.of(
             new Question.Option("Wenn es sein muss", Map.of("FUNKTIONIERENDE", 5)),
-            new Question.Option("Ohne Problem", Map.of("ÜBERZEUGTE", 5)),
+            new Question.Option("Ohne Probleme", Map.of("ÜBERZEUGTE", 5)),
             new Question.Option("Es stellt eine Herausforderung dar", Map.of("GETRIEBENE", 5)),
             new Question.Option("Für mich selbst nicht", Map.of("KONTROLLIERENDE", 5))
         )));
