@@ -37,7 +37,7 @@ public class QuizController {
             new Question.Option("der Freund für alle", Map.of("FUNKTIONIERENDE", 5))
         )));
 
-        questions.add(new Question("Wenn ich Mittelpunkt bin würde ich am Liebsten?", List.of(
+        questions.add(new Question("Wenn ich im Mittelpunkt bin würde ich am Liebsten?", List.of(
             new Question.Option("Den Moment strecken", Map.of("KONTROLLIERENDE", 5)),
             new Question.Option("Dem Albtraum entfliehen", Map.of("UNAUFFÄLLIGE", 5)),
             new Question.Option("Dort bleiben", Map.of("ÜBERZEUGTE", 5)),
@@ -58,7 +58,7 @@ public class QuizController {
             new Question.Option("Was sollte ich sonst tun?", Map.of("FUNKTIONIERENDE", 5))
         )));
 
-        questions.add(new Question("Fühlen Sie sich anderen Menschen oft eine Schritt voraus?", List.of(
+        questions.add(new Question("Fühlen Sie sich anderen Menschen oft einen Schritt voraus?", List.of(
             new Question.Option("Ja, weil ich besser bin", Map.of("ÜBERZEUGTE", 5)),
             new Question.Option("Ja, weil ich alles plane", Map.of("KONTROLLIERENDE", 5)),
             new Question.Option("Ja, weil ich alles beobachte", Map.of("UNAUFFÄLLIGE", 5)),
